@@ -41,13 +41,13 @@ function buildReceiptItems (cartItems, promotions) {
   })
 }
 
-let getPromotionType = (barcode, promotions)=> {
+function getPromotionType  (barcode, promotions){
   let promotion = promotions.find(promotion=>promotion.barcodes.includes(barcode));
 
   return promotion ? promotion.type : '';
 }
 
-let discount = (count,price, promotionType)=> {
+function discount (count,price, promotionType) {
   let subtotal = count*price;
   let saved = 0;
 
