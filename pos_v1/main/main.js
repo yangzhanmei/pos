@@ -1,5 +1,17 @@
 'use strict';
-let buildCartItems = (inputs, allItems) => {
+
+function printReceipt (inputs) {
+  let allItems = loadAllItems();
+  let promotions = loadPromotions();
+  let cartItems = buildCartItems(inputs, allItems);
+  let receiptItems = buildReceiptItems(cartItems, promotions);
+  let receipt = buildReceipt(receiptItems);
+  let receiptText = buildReceiptText(receipt);
+
+  console.log(receiptText);
+}
+
+function buildCartItems (inputs, allItems){
   let cartItems = [];
 
   for (let input of inputs) {
@@ -21,7 +33,7 @@ let buildCartItems = (inputs, allItems) => {
   return cartItems;
 };
 
-let buildReceiptItems = (cartItems, promotions)=> {
+function buildReceiptItems (cartItems, promotions) {
   return cartItems.map(cartItem=> {
     let promotionType = getPromotionType(cartItem.item.barcode, promotions);
     let {saved, subtotal}=discount(cartItem.count,cartItem.item.price,promotionType);
@@ -40,7 +52,6 @@ let discount = (count,price, promotionType)=> {
   let saved = 0;
 
   if (promotionType === 'BUY_TWO_GET_ONE_FREE') {
-
     saved = parseInt(count/3)*price;
     subtotal -= saved;
   }
@@ -48,7 +59,7 @@ let discount = (count,price, promotionType)=> {
   return {saved, subtotal}
 }
 
-let buildReceipt = (receiptItems) => {
+function buildReceipt (receiptItems) {
   let total = 0;
   let save = 0;
 
@@ -60,36 +71,25 @@ let buildReceipt = (receiptItems) => {
   return {receiptItems, total, save};
 };
 
-let printReceipt = (receipt) => {
-  let print = '***<没钱赚商店>收据***\n';
+function buildReceiptText (receipt) {
+  let receiptText = receipt.receiptItems.map(receiptItem=> {
+    const cartItem = receiptItem.cartItem;
+    return `名称：${cartItem.item.name}，\
+数量：${cartItem.count}${cartItem.item.unit}，\
+单价：${formatMoney(cartItem.item.price)}(元)，\
+小计：${formatMoney(receiptItem.subtotal)}(元)`;
+  }).join('\n');
 
-  receipt.receiptItems.map(receiptItem=> {
-    print += ('名称：' + receiptItem.cartItem.item.name
-    + '，数量：' + receiptItem.cartItem.count
-    + receiptItem.cartItem.item.unit
-    + '，单价：' + receiptItem.cartItem.item.price.toFixed(2)
-    + '(元)，小计：' + receiptItem.subtotal.toFixed(2)
-    + '(元)\n');
+  return `***<没钱赚商店>收据***
+${receiptText}
+----------------------
+总计：${formatMoney(receipt.total)}(元)
+节省：${formatMoney(receipt.save)}(元)
+**********************`;
+}
 
-    return print;
-  });
-  print += '----------------------\n'
-    + '总计：' + receipt.total.toFixed(2) + '(元)\n'
-    + '节省：' + receipt.save.toFixed(2) + '(元)\n'
-    + '**********************';
-
-  return print;
-};
-
-let print = (inputs) => {
-  let allItems = loadAllItems();
-  let promotions = loadPromotions();
-  let cartItems = buildCartItems(inputs, allItems);
-  let receiptItems = buildReceiptItems(cartItems, promotions);
-  let receipt = buildReceipt(receiptItems);
-  let print = printReceipt(receipt);
-
-  console.log(print);
+function formatMoney(money) {
+  return money.toFixed(2);
 }
 
 
